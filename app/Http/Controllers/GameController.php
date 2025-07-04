@@ -111,6 +111,12 @@ class GameController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
+        if (!$userSelection) {
+            return response()->json([
+                'message' => 'You did not participate in this session.',
+            ], 404);
+        }
+
         return response()->json([
             'won' => $userSelection->is_winner,
             'selected_number' => $userSelection->selected_number,
