@@ -12,4 +12,8 @@ class GameSession extends Model
         'winning_number',
         'is_active'
     ];
+    public function selections()
+    {
+        return $this->hasMany(PlayerSelection::class);
+    }
 }

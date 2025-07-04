@@ -21,7 +21,6 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'wins',
-        'api_token',
     ];
 
     /**
@@ -32,6 +31,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'updated_at'
     ];
 
     /**
@@ -45,5 +45,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function selections()
+    {
+        return $this->hasMany(PlayerSelection::class);
     }
 }

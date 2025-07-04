@@ -12,4 +12,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/current-session', [GameController::class, 'getCurrentSession']);
     Route::post('/join-session', [GameController::class, 'joinSession']);
     Route::get('/leaderboard', [GameController::class, 'getLeaderboard']);
+    Route::get('/session-results/{sessionId}', [GameController::class, 'getSessionResults']);
 });

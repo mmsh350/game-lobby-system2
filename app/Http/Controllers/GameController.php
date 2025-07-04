@@ -10,58 +10,17 @@ use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
-    // public function getCurrentSession()
-    // {
-    //     $session = GameSession::where('is_active', true)->first();
-
-    //     if (!$session) {
-    //         $session = $this->createNewSession();
-    //     }
-
-    //     return response()->json([
-    //         'session' => $session,
-    //         'time_left' => max(0, Carbon::now()->diffInSeconds(Carbon::parse($session->end_time), false))
-    //     ]);
-    // }
-    // public function getCurrentSession()
-    // {
-    //     $session = GameSession::where('is_active', true)->first();
-
-    //     $check_time = $session->end_time - carbon::now();
-
-    //     if (!$session) {
-    //         $session = $this->createNewSession();
-    //     }
-    //     if ($check_time < ) {
-    //         $session = $this->createNewSession();
-    //     }
-
-    //     // // Calculate time left as integer seconds
-    //     // $timeLeft = now()->diffInSeconds(Carbon::parse($session->end_time), false);
-    //     // $timeLeft = max(0, $timeLeft);
-
-    //     return response()->json([
-    //         'session' => $session,
-    //         // 'time_left' => $timeLeft
-    //     ]);
-    // }
-
     public function getCurrentSession()
     {
         $session = GameSession::where('is_active', true)->first();
 
-        // If no active session exists, create a new one
         if (!$session) {
             $session = $this->createNewSession();
         }
-        // If session exists but end time has passed, create a new one
-        else if (Carbon::now()->greaterThan(Carbon::parse($session->end_time))) {
-            $session = $this->createNewSession();
-        }
 
-        // Calculate time left in seconds (for the response if needed)
-        $timeLeft = Carbon::now()->diffInSeconds(Carbon::parse($session->end_time), false);
-        $timeLeft = max(0, $timeLeft);
+        if ($session && Carbon::now()->greaterThan(Carbon::parse($session->end_time))) {
+            $this->getSessionResults($session->id);
+        }
 
         return response()->json([
             'session' => $session,
@@ -79,7 +38,6 @@ class GameController extends Controller
             return response()->json(['message' => 'No active session'], 400);
         }
 
-        // Check if user already joined this session
         if (PlayerSelection::where('user_id', $user->id)
             ->where('game_session_id', $session->id)
             ->exists()
@@ -105,40 +63,19 @@ class GameController extends Controller
         return response()->json($topPlayers);
     }
 
-    // private function createNewSession()
-    // {
-    //     // End any existing sessions
-    //     GameSession::where('is_active', true)->update(['is_active' => false]);
-
-    //     // Determine winners for ending sessions
-    //     $this->determineWinners();
-
-    //     $startTime = Carbon::now();
-    //     $endTime = $startTime->copy()->addSeconds(20);
-
-    //     return GameSession::create([
-    //         'start_time' => $startTime,
-    //         'end_time' => $endTime,
-    //         'is_active' => true
-    //     ]);
-    // }
     public function createNewSession()
     {
-        // End any existing sessions
-        GameSession::where('is_active', true)->update(['is_active' => false]);
 
-        // Determine winners for ending sessions
-        $this->determineWinners();
-
-        $startTime = Carbon::now()->setMicroseconds(0); // Remove microseconds
+        $startTime = Carbon::now()->setMicroseconds(0);
         $endTime = $startTime->copy()->addSeconds(20);
 
         return GameSession::create([
-            'start_time' => $startTime->format('Y-m-d H:i:s'), // Explicit format
-            'end_time' => $endTime->format('Y-m-d H:i:s'),    // Explicit format
+            'start_time' => $startTime->format('Y-m-d H:i:s'),
+            'end_time' => $endTime->format('Y-m-d H:i:s'),
             'is_active' => true
         ]);
     }
+
     private function determineWinners()
     {
         $sessions = GameSession::where('is_active', false)
@@ -153,12 +90,32 @@ class GameController extends Controller
                 ->where('selected_number', $session->winning_number)
                 ->update(['is_winner' => true]);
 
-            // Update user win counts
             $winnerIds = PlayerSelection::where('game_session_id', $session->id)
                 ->where('is_winner', true)
                 ->pluck('user_id');
 
             User::whereIn('id', $winnerIds)->increment('wins');
         }
+    }
+    public function getSessionResults($sessionId)
+    {
+        GameSession::where('is_active', true)->update(['is_active' => false]);
+
+        $this->determineWinners();
+
+        $session = GameSession::with(['selections.user'])
+            ->findOrFail($sessionId);
+
+        $user = auth()->user();
+        $userSelection = $session->selections()
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        return response()->json([
+            'won' => $userSelection->is_winner,
+            'selected_number' => $userSelection->selected_number,
+            'winning_number' => $session->winning_number,
+            'session' => $session
+        ]);
     }
 }

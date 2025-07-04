@@ -40,7 +40,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Create Sanctum token
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
