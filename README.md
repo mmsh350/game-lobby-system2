@@ -6,7 +6,7 @@ This is the backend API for the Game Lobby System built with Laravel. It manages
 
 ---
 
-## 🚀 Features
+## Features
 
 -   User registration and authentication via API tokens
 -   Game session handling (start, end, and result logic)
@@ -16,7 +16,7 @@ This is the backend API for the Game Lobby System built with Laravel. It manages
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 -   PHP 8+
 -   Laravel 10+
@@ -25,7 +25,7 @@ This is the backend API for the Game Lobby System built with Laravel. It manages
 
 ---
 
-## 🛠 Setup Instructions
+## Setup Instructions
 
 1.  Clone the repository:
     ```bash
