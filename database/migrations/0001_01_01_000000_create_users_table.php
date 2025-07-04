@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('username')->unique();
             $table->integer('wins')->default(0);
-            $table->string('api_token', 80)->unique()->nullable()->default(null);
             $table->timestamps();
         });
 

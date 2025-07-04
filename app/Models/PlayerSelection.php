@@ -11,4 +11,12 @@ class PlayerSelection extends Model
         'game_session_id',
         'selected_number',
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function gameSession()
+    {
+        return $this->belongsTo(GameSession::class);
+    }
 }
